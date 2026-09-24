@@ -1,0 +1,75 @@
+name: Fetch XiaozhiPro Bread Compact WiFi
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - xiaozhipro-bread-compact-ready
+    paths:
+      - '.github/workflows/fetch-xiaozhipro-bread-compact.yml'
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download official XiaozhiPro firmware
+        run: |
+          mkdir -p out
+          curl -L --fail --retry 5 \
+            -o out/xiaozhiPro-v2.4.0.1-bread-compact-wifi.zip \
+            https://github.com/hougeai/xiaozhiPro/releases/download/v2.4.0.1/v2.4.0.1_bread-compact-wifi.zip
+          mkdir -p out/extracted
+          unzip -o out/xiaozhiPro-v2.4.0.1-bread-compact-wifi.zip -d out/extracted
+          echo "=== ZIP CONTENTS ==="
+          find out/extracted -maxdepth 3 -type f -printf '%p %s bytes\n'
+
+      - name: Create wiring/readme
+        run: |
+          cat > out/README-RCX.txt <<'EOF'
+          RCX Jarvis - XiaozhiPro v2.4.0.1
+          Board profile: bread-compact-wifi
+          Target: ESP32-S3, 16MB flash default profile
+
+          IMPORTANT: Use the official bread-compact-wifi pinout:
+
+          INMP441
+          VDD  -> 3V3
+          GND  -> GND
+          WS   -> GPIO4
+          SCK  -> GPIO5
+          SD   -> GPIO6
+          L/R  -> GND
+
+          MAX98357A
+          VIN  -> 5V
+          GND  -> GND
+          DIN  -> GPIO7
+          BCLK -> GPIO15
+          LRC  -> GPIO16
+          Speaker -> SPK+ and SPK- only
+
+          RGB onboard -> GPIO48
+          BOOT         -> GPIO0
+
+          Optional pins from profile:
+          Touch button -> GPIO47
+          Volume +     -> GPIO40
+          Volume -     -> GPIO39
+          OLED SDA     -> GPIO41
+          OLED SCL     -> GPIO42
+
+          No OLED/buttons other than BOOT are required for the first test.
+
+          Flash the merged firmware .bin from offset 0x0.
+          After boot, configure Wi-Fi, bind device to xiaozhi.me,
+          then bind the same device to XiaozhiPro console.
+          EOF
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: RCX-XiaozhiPro-bread-compact-wifi
+          retention-days: 30
+          path: out/**
