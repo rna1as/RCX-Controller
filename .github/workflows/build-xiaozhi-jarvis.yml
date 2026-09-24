@@ -1,0 +1,49 @@
+name: Build Xiaozhi Jarvis N16R8
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - xiaozhi-jarvis-n16r8-build
+    paths:
+      - '.github/workflows/build-xiaozhi-jarvis.yml'
+      - 'xiaozhi-overlay/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout build overlay
+        uses: actions/checkout@v4
+
+      - name: Checkout Xiaozhi v2.5.0
+        run: git clone --depth 1 --branch v2.5.0 https://github.com/78/xiaozhi-esp32.git xiaozhi
+
+      - name: Install RCX Jarvis board definition
+        run: |
+          cp -r xiaozhi-overlay/main/boards/rcx-jarvis-n16r8 xiaozhi/main/boards/
+          python3 xiaozhi-overlay/apply_patch.py xiaozhi
+
+      - name: Build Indonesian + Jarvis wake word
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/xiaozhi:/project" \
+            -w /project \
+            espressif/idf:v6.1 \
+            bash -lc 'python scripts/build.py rcx-jarvis-n16r8 --language id-ID --wake-word wn9_jarvis_tts --zip'
+
+      - name: Show outputs
+        run: |
+          ls -lah xiaozhi/build || true
+          ls -lah xiaozhi/releases || true
+
+      - name: Upload ready-to-flash firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiaozhi-jarvis-n16r8-firmware
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            xiaozhi/build/merged-binary.bin
+            xiaozhi/releases/v*_rcx-jarvis-n16r8.zip
