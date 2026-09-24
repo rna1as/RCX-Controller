@@ -25,13 +25,13 @@ jobs:
           cp -r xiaozhi-overlay/main/boards/rcx-jarvis-n16r8 xiaozhi/main/boards/
           python3 xiaozhi-overlay/apply_patch.py xiaozhi
 
-      - name: Build Indonesian + Jarvis wake word
+      - name: Build diagnostic firmware without wake word
         run: |
           docker run --rm \
             -v "${{ github.workspace }}/xiaozhi:/project" \
             -w /project \
             espressif/idf:v6.1 \
-            bash -lc 'python scripts/build.py rcx-jarvis-n16r8 --language id-ID --wake-word wn9_jarvis_tts --zip'
+            bash -lc 'python scripts/build.py rcx-jarvis-n16r8 --language id-ID --wake-word disabled --zip'
 
       - name: Show outputs
         run: |
