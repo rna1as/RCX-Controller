@@ -11,8 +11,9 @@
         "CONFIG_SPIRAM=y",
         "CONFIG_SPIRAM_MODE_OCT=y",
         "CONFIG_SPIRAM_SPEED_80M=y",
-        "CONFIG_USE_AUDIO_PROCESSOR=y",
-        "CONFIG_WAKE_WORD_DETECTION_IN_LISTENING=n"
+        "CONFIG_USE_AUDIO_PROCESSOR=n",
+        "CONFIG_USE_DEVICE_AEC=n",
+        "CONFIG_USE_SERVER_AEC=n"
       ]
     }
   ]
